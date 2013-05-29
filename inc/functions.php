@@ -67,9 +67,9 @@ function synop($contents, $terms) {
 
 function highlight($text, $terms) {
   $terms = array_unique($terms);
-  $bad_terms = array('s','t','r','o','n','g');
+  $bad_terms = 'strong';
   foreach($terms as $term) {
-    if (!in_array($term, $bad_terms)){
+    if (strpos($bad_terms, strtolower($term)) === false){
       $text = preg_replace("/($term)/i", '<strong>\\1</strong>', $text);
     }
   }
