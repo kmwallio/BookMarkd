@@ -52,12 +52,16 @@ if(logged_in() && isset($_GET['del'])) {
     <div class="container">
       <?php
       
-      $results = db_list_documents();
+      $how_many = 15;
+      $page = isset($_GET['p']) ? intval($_GET['p']) : 0;
+      
+      $results = db_list_documents($how_many, $page);
+      $pagination = db_paginate_documents($how_many, $page, 6);
       $num_res = count($results);
       if ($num_res == 0) {
         echo '<p>No bookmarks.</p>';
       } else {
-        echo '<ol>';
+        echo '<ol start="' . ($page * $how_many + 1) . '">';
         
         for($r = 0; $r < $num_res; $r++) {
           $res = $results[$r];
@@ -81,7 +85,7 @@ if(logged_in() && isset($_GET['del'])) {
               <?php
             }
             ?>
-            <p><?=($r<10)?get_syop($doc_content, $terms) : ''?></p>
+            <p><?=($r<15)?get_syop($doc_content, $terms) : ''?></p>
           </li>
           
           <?php
@@ -91,6 +95,34 @@ if(logged_in() && isset($_GET['del'])) {
       }
       
       ?>
+      
+      <div class="pagination text-center">
+        <ul>
+          <?php
+          if ($page == 0) {
+            echo '<li class="disabled"><a href="#">&laquo;</a></li>';
+          } else {
+            echo '<li><a href="?p=' . ($page - 1) . '">&laquo;</a></li>';
+          }
+          
+          foreach($pagination as $paginator) {
+            if ($paginator == -1) {
+              echo '<li class="disabled"><a href="#">&hellip;</a></li>';
+            } else {
+              echo '<li' . (($page == $paginator) ? ' class="active"':'') . '>';
+              echo '<a href="?p=' . $paginator . '">' . ($paginator + 1) . '</a></li>';
+            }
+          }
+          
+          if ($page < $pagination[count($pagination) - 1]) {
+            echo '<li><a href="?p=' . ($page + 1) . '">&raquo;</a></li>';
+          } else {
+            echo '<li class="disabled"><a href="#">&raquo;</a></li>';
+          }
+          
+          ?>
+        </ul>
+      </div>
     </div>
     
     <footer id="footer">

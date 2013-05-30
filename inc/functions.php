@@ -79,7 +79,6 @@ function get_syop($content, $terms) {
   return highlight(htmlentities(synop($content, $terms)),$terms);
 }
 
-
 function strip_tags_and_javascript($text) {
   $result = '';
   if(!is_array($text)){

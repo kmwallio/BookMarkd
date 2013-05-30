@@ -398,11 +398,19 @@ function db_get_content($doc_id) {
   return '';
 }
 
-function db_list_documents() {
+function db_list_documents($how_many, $page) {
   $db = connect_db();
   
-  $q = $db->prepare('SELECT Documents.id as id, Documents.icon as icon, Documents.doclength as doc_size, Documents.views as views, Documents.title as title, Documents.path as path, Documents.searches as searches FROM Documents ORDER BY id DESC');
-  $q->execute();
+  $how_many = intval($how_many);
+  $page = intval($page) * $how_many;
+  
+  if ($how_many <= 0) {
+    $q = $db->prepare('SELECT Documents.id as id, Documents.icon as icon, Documents.doclength as doc_size, Documents.views as views, Documents.title as title, Documents.path as path, Documents.searches as searches FROM Documents ORDER BY id DESC');
+    $q->execute();
+  } else {
+    $q = $db->prepare('SELECT Documents.id as id, Documents.icon as icon, Documents.doclength as doc_size, Documents.views as views, Documents.title as title, Documents.path as path, Documents.searches as searches FROM Documents ORDER BY id DESC LIMIT :page,:how_many');
+    $q->execute(array('page' => $page, 'how_many' => $how_many));
+  }
   
   $res = array();
   while(($r = $q->fetch(PDO::FETCH_ASSOC)) !== false) {
@@ -410,6 +418,56 @@ function db_list_documents() {
   }
   
   return $res;
+}
+
+function db_paginate_documents($how_many, $page, $range) {
+  $db = connect_db();
+  
+  $how_many = intval($how_many);
+  $page = intval($page);
+  
+  $q = $db->prepare('SELECT COUNT(*) FROM Documents');
+  $q->execute();
+  
+  $docs = $q->fetchColumn();
+  
+  $total_pages = ceil($docs / $how_many);
+  
+  $pagination = array();
+  
+  if($total_pages < $range) {
+    for($i = 0; $i < $total_pages; $i++) {
+      $pagination[] = $i;
+    }
+  } else {
+    $pagination[] = 0;
+    $range -= 2;
+    $divider = intval($range / 2);
+    
+    $e = $page + $divider;
+    $s = $page - $divider;
+    if ($s <= 0) {
+      $e += (1 - $s);
+      $s = 1;
+    } elseif ($e >= $total_pages - 1) {
+      $s -= ($e - ($total_pages - 1));
+      $e = $total_pages - 2;
+    }
+    if ($s != 1) {
+      $pagination[] = -1;
+    }
+    
+    echo $s . ' - ' . $divider . ' - ' . $e;
+    for($i = $s; $i <= $e; $i++) {
+      $pagination[] = $i;
+    }
+    if ($e != $total_pages - 2) {
+      $pagination[] = -1;
+    }
+    $pagination[] = $total_pages - 1;
+  }
+  
+  return $pagination;
 }
 
 function db_delete_document($doc_id) {
