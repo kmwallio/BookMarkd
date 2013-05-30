@@ -17,6 +17,11 @@ if (isset($_GET['new_code'])) {
   header('Location: admin.php');
 }
 
+if (isset($_GET['key']) && isset($_GET['url'])) {
+  db_enqueue($_GET['key'], $_GET['url']);
+  header('Location: admin.php');
+}
+
 ?><!DOCTYPE HTML>
 <html>
   <head>
@@ -112,9 +117,19 @@ if (isset($_GET['new_code'])) {
             <?php
             }
             ?>
+            
+            <div class="span5">
+              <h3>Add URL</h3>
+              <p>
+                <form method="get">
+                  <input type="text" name="url" value="http://" class="search-query input-large">
+                  <input type="hidden" name="key" value="<?=db_get_marklet($_COOKIE['user'])?>">
+                </form>
+              </p>
+            
           </div>
-          
-        </div>
+            
+          </div>
       </div>
     
     </div>
