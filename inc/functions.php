@@ -68,7 +68,7 @@ function synop($contents, $terms) {
 function highlight($text, $terms) {
   $terms = array_unique($terms);
   foreach($terms as $term) {
-    if (strtolower($term) == "b"){
+    if (strtolower($term) != "b"){
       $text = preg_replace("/($term)/i", '<b>\\1</b>', $text);
     }
   }
