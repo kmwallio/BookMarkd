@@ -67,6 +67,9 @@ function synop($contents, $terms) {
 
 function highlight($text, $terms) {
   $terms = array_unique($terms);
+  $lengths = $terms;
+  array_walk($lengths, "strlen2");
+  array_multisort($lengths, SORT_DESC, $terms);
   foreach($terms as $term) {
     if (strtolower($term) != "b"){
       $text = preg_replace("/($term)/i", '<b>\\1</b>', $text);
@@ -193,4 +196,8 @@ function ascii_only($text) {
   $result = preg_replace('/[^\w]/', ' ', $result);
   $result = preg_replace('/\s+/', ' ', $result);
   return $result;
+}
+
+function strlen2($str, $option) {
+  return strlen($str);
 }
