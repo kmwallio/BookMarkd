@@ -7,12 +7,19 @@ require_once('inc/files.php');
 require_once('inc/functions.php');
 require_once('vendor/autoload.php');
 require_once('inc/document.php');
+
+if(logged_in() && isset($_GET['del'])) {
+  db_delete_document(intval($_GET['del']));
+  header('Location: index.php');
+}
+
 ?>
 <!DOCTYPE HTML>
 <html>
   <head>
     <title>BookMark'd</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <link href="css/bootstrap.css" rel="stylesheet" media="screen">
     <link href="css/search.css" rel="stylesheet" media="screen">
     <style>
@@ -60,14 +67,20 @@ require_once('inc/document.php');
           ?>
           
           <li>
-            <a href="view.php?doc=<?=$res['id']?>" rel="tooltip" title="<?=strip_tags_and_javascript($res['title'])?>"><img src="https://plus.google.com/_/favicon?domain=<?php
+            <a href="view.php?doc=<?=$res['id']?>" rel="tooltip" title="<?=$res['path']?>"><img src="https://plus.google.com/_/favicon?domain=<?php
             $parsed_url = parse_url($res['path']);
             if (isset($parsed_url['host'])) {
               echo $parsed_url['host'];
             } else {
               echo urlencode($res['path']);
             }
-            ?>" style="margin-top: -4px">&nbsp;<?=strip_tags_and_javascript($res['title'])?></a>
+            ?>" style="margin-top: -4px">&nbsp;<?=strip_tags_and_javascript($res['title'])?></a><?php
+            if(logged_in()) {
+              ?>
+                &nbsp;<a href="?del=<?=$res['id']?>" rel="tooltip" title="Delete" class="delete">&times;</a>
+              <?php
+            }
+            ?>
             <p><?=($r<10)?get_syop($doc_content, $terms) : ''?></p>
           </li>
           

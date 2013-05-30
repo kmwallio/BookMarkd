@@ -8,8 +8,9 @@ Search through your links with ease.
 
 ## Current Features
 
-* Convienient Bookmarklet
+* Convenient Bookmarklet
 * Link search
+* Deleting Bookmarks
 
 ## Planned Features
 
@@ -19,7 +20,6 @@ Search through your links with ease.
 	* exclude terms, by site or tags
 * Tagging
 	* Auto-tagging for new links
-* Deleting Bookmarks
 * Improved site stripping (oh la la)
 	* Remove menus, footers, just get content
 * Privacy lock, not open and viewable

@@ -411,3 +411,29 @@ function db_list_documents() {
   
   return $res;
 }
+
+function db_delete_document($doc_id) {
+  $db = connect_db();
+  $rem_array = array('doc_id' => $doc_id);
+  
+  // Get the terms
+  $q = $db->prepare('SELECT DocumentTerms.term as term_id, DocumentTerms.occurrences as dec_term, Terms.occurrences as cur_count FROM DocumentTerms, Terms WHERE document=:doc_id AND Terms.id=DocumentTerms.term');
+  $q->execute($rem_array);
+  
+  // Update counts
+  while (($r = $q->fetch(PDO::FETCH_ASSOC))) {
+    $new_value = $r['cur_count'] - $r['dec_term'];
+    $u = $db->prepare('UPDATE Terms SET occurrences=:new_value WHERE id=:term');
+    $u->execute(array('new_value' => $new_value, 'term' => $r['term_id']));
+  }
+  
+  // Remove the document
+  $rm = $db->prepare('DELETE FROM Documents WHERE id=:doc_id');
+  $rm->execute($rem_array);
+  $rm = $db->prepare('DELETE FROM DocumentTerms WHERE document=:doc_id');
+  $rm->execute($rem_array);
+  $rm = $db->prepare('DELETE FROM TaggedDocuments WHERE document=:doc_id');
+  $rm->execute($rem_array);
+  $rm = $db->prepare('DELETE FROM DocumentCache WHERE id=:doc_id');
+  $rm->execute($rem_array);
+}

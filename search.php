@@ -15,6 +15,11 @@ if(empty($input_query)) {
   header('Location: index.php');
 }
 
+if(logged_in() && isset($_GET['del'])) {
+  db_delete_document(intval($_GET['del']));
+  header('Location: search.php?q=' . urlencode($input_query));
+}
+
 ?><!DOCTYPE HTML>
 <html>
   <head>
@@ -23,6 +28,7 @@ if(empty($input_query)) {
       echo '&#8216;' . htmlentities($input_query) . '&#8217; - ';
     }?>Search - BookMark'd</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <link href="css/bootstrap.css" rel="stylesheet" media="screen">
     <link href="css/search.css" rel="stylesheet" media="screen">
     <style>
@@ -79,14 +85,20 @@ if(empty($input_query)) {
           ?>
           
           <li>
-            <a href="view.php?searched=<?=$r;?>&doc=<?=$res['doc']['id']?>" rel="tooltip" title="<?=strip_tags_and_javascript($res['doc']['title'])?> (<?=round($res['weight'], 5)?>)"><img src="https://plus.google.com/_/favicon?domain=<?php
+            <a href="view.php?searched=<?=$r;?>&doc=<?=$res['doc']['id']?>" rel="tooltip" title="<?=$res['doc']['path']?> (<?=round($res['weight'], 5)?>)"><img src="https://plus.google.com/_/favicon?domain=<?php
             $parsed_url = parse_url($res['doc']['path']);
             if (isset($parsed_url['host'])) {
               echo $parsed_url['host'];
             } else {
               echo urlencode($res['doc']['path']);
             }
-            ?>" style="margin-top: -4px">&nbsp;<?=strip_tags_and_javascript($res['doc']['title'])?></a>
+            ?>" style="margin-top: -4px">&nbsp;<?=strip_tags_and_javascript($res['doc']['title'])?></a><?php
+            if(logged_in()) {
+              ?>
+                &nbsp;<a href="?del=<?=$res['doc']['id']?>&q=<?=urlencode($input_query)?>" rel="tooltip" title="Delete" class="delete">&times;</a>
+              <?php
+            }
+            ?>
             <p><?=($r<10)?get_syop($doc_content, $terms):''?></p>
           </li>
           
