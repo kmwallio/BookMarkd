@@ -23,36 +23,38 @@ function connect_db() {
 
 function db_create_document($document) {
   $db = connect_db();
-  try{
-    // Create and store the document.
-    $q = $db->prepare("INSERT INTO Documents (title, doclength, path, made, edited, views, searches) VALUES (:title, :length, :path, strftime('%s','now'), strftime('%s','now'), 0, 0)");
+  
+  $check = $db->prepare('SELECT COUNT(*) FROM Documents WHERE path=:path');
+  $check->execute(array('path' => $document->path));
+  
+  if ($check->fetchColumn() >= 1) {
+    // Update the document
     
-    $path = $document->path;
-    $data = array("title" => $document->get_title(true), "length" => $document->length, "path" => $path);
+    $q = $db->prepare('SELECT id FROM Documents WHERE path=:path');
+    $q->execute(array('path' => $document->path));
     
-    if($q->execute($data)) {
-      $doc_id = $db->lastInsertId();
+    $doc_id = $q->fetchColumn();
+    
+    db_update_document($doc_id, $document);
+    
+  } else {
+    try{
+      // Create and store the document.
+      $q = $db->prepare("INSERT INTO Documents (title, doclength, path, made, edited, views, searches) VALUES (:title, :length, :path, strftime('%s','now'), strftime('%s','now'), 0, 0)");
       
-      $tags = $document->get_tags();
+      $path = $document->path;
+      $data = array("title" => $document->get_title(true), "length" => $document->length, "path" => $path);
       
-      foreach($tags as $tag) {
-        db_add_tag(db_get_tag_id($tag), $doc_id);
+      if($q->execute($data)) {
+        $doc_id = $db->lastInsertId();
+        
+        db_fill_document($doc_id, $document);
+      } else {
+        die('Error: Could not add document to database');
       }
-      
-      $terms = $document->terms;
-      
-      foreach($terms as $term=>$count) {
-        db_add_term(db_get_term_id($term), $doc_id, $count);
-      }
-      
-      $q = $db->prepare('INSERT INTO DocumentCache (content, id) VALUES (:content, :id)');
-      $q->execute(array('content' => $document->content, 'id' => $doc_id));
-      
-    } else {
-      die('Error: Could not add document to database');
+    } catch (PDOException $e) {
+      echo $e->getMessage();
     }
-  } catch (PDOException $e) {
-    echo $e->getMessage();
   }
 }
 
@@ -474,24 +476,74 @@ function db_delete_document($doc_id) {
   $db = connect_db();
   $rem_array = array('doc_id' => $doc_id);
   
+  db_clear_document($doc_id);
+  
+  $rm = $db->prepare('DELETE FROM Documents WHERE id=:doc_id');
+  $rm->execute($rem_array);
+}
+
+function db_clear_document($doc_id) {
+  $db = connect_db();
+  $rem_array = array('doc_id' => $doc_id);
+  
   // Get the terms
   $q = $db->prepare('SELECT DocumentTerms.term as term_id, DocumentTerms.occurrences as dec_term, Terms.occurrences as cur_count FROM DocumentTerms, Terms WHERE document=:doc_id AND Terms.id=DocumentTerms.term');
   $q->execute($rem_array);
   
   // Update counts
-  while (($r = $q->fetch(PDO::FETCH_ASSOC))) {
+  while (($r = $q->fetch(PDO::FETCH_ASSOC)) !== false) {
     $new_value = $r['cur_count'] - $r['dec_term'];
     $u = $db->prepare('UPDATE Terms SET occurrences=:new_value WHERE id=:term');
     $u->execute(array('new_value' => $new_value, 'term' => $r['term_id']));
   }
   
   // Remove the document
-  $rm = $db->prepare('DELETE FROM Documents WHERE id=:doc_id');
-  $rm->execute($rem_array);
   $rm = $db->prepare('DELETE FROM DocumentTerms WHERE document=:doc_id');
   $rm->execute($rem_array);
   $rm = $db->prepare('DELETE FROM TaggedDocuments WHERE document=:doc_id');
   $rm->execute($rem_array);
   $rm = $db->prepare('DELETE FROM DocumentCache WHERE id=:doc_id');
   $rm->execute($rem_array);
+}
+
+function db_update_document($doc_id, $document) {
+  $db = connect_db();
+  try{
+    db_clear_document($doc_id);
+    db_fill_document($doc_id, $document);
+    $q = $db->prepare("UPDATE Documents SET edited=strftime('%s','now') WHERE id=:doc_id");
+    $q->execute(array('doc_id' => $doc_id));
+  } catch (PDOException $e) {
+    echo $e->getMessage();
+  }
+}
+
+function db_fill_document($doc_id, $document) {
+  $db = connect_db();
+  $tags = $document->get_tags();
+      
+  foreach($tags as $tag) {
+    db_add_tag(db_get_tag_id($tag), $doc_id);
+  }
+  
+  $terms = $document->terms;
+  
+  foreach($terms as $term=>$count) {
+    db_add_term(db_get_term_id($term), $doc_id, $count);
+  }
+  
+  $q = $db->prepare('INSERT INTO DocumentCache (content, id) VALUES (:content, :id)');
+  $q->execute(array('content' => $document->content, 'id' => $doc_id));
+}
+
+function db_old_docs($old_time) {
+  $db = connect_db();
+  
+  $q = $db->prepare('SELECT path FROM Documents WHERE edited<:old_time');
+  $q->execute(array('old_time' => $old_time));
+  
+  while(($res = $q->fetch(PDO::FETCH_ASSOC)) !== false) {
+    // Reenque old documents to be updated
+    db_reenqueue($res['path']);
+  }
 }

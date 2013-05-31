@@ -1,5 +1,7 @@
 #!/usr/bin/env php
 <?php
+//define('AGE_LIMIT', 336); // Document contents expire after # hours
+
 $working_dir = str_replace('cron.php', '', __FILE__);
 chdir($working_dir);
 
@@ -26,3 +28,7 @@ while (!empty($site) && time() - $time < 20) { // Want to stay under the 30 limi
 if (!empty($site) && time() - $time < 20) {
   db_reenqueue($site);
 }
+
+// Reenqueue old documents
+//$ex_time = time() - (AGE_LIMIT * 3600);
+//db_old_docs($ex_time);

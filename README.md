@@ -11,6 +11,10 @@ Search through your links with ease.
 * Convenient Bookmarklet
 * Link search
 * Deleting Bookmarks
+* Periodic site content updated (incase you bookmark a homepage or some other web site that updates it's content)
+  * By default it's set to 2 weeks.  This can be lowered or increased, but 2 weeks seems like a nice timeframe
+  * You have to [uncomment the lines in cron.php](https://github.com/kmwallio/BookMarkd/wiki/Periodic-Updating) for it to work.  We encourage bookmarking static site content into BookMark'd so you can avoid having to run this
+  * Remarking a website will update its contents in the database
 
 ## Planned Features
 
@@ -23,7 +27,6 @@ Search through your links with ease.
 * Improved site stripping (oh la la)
 	* Remove menus, footers, just get content
 * Privacy lock, not open and viewable
-* Periodic site content updated (incase you bookmark a homepage or some other web site that updates it's content)
 * Related pages
 	* Not tagged, but based on content
 * Templates so you can "rebrand" the pages
