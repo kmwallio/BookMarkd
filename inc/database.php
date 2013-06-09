@@ -533,7 +533,7 @@ function db_fill_document($doc_id, $document) {
   }
   
   $q = $db->prepare('INSERT INTO DocumentCache (content, id) VALUES (:content, :id)');
-  $q->execute(array('content' => $document->content, 'id' => $doc_id));
+  $q->execute(array('content' => $document->document, 'id' => $doc_id));
 }
 
 function db_old_docs($old_time) {

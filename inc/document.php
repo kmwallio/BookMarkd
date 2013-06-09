@@ -2,7 +2,6 @@
 require_once('vendor/autoload.php');
 require_once('stemmer.php');
 require_once('functions.php');
-use Symfony\Component\Yaml\Yaml;
 
 class Document {
   public $document = '';
