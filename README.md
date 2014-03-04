@@ -61,4 +61,4 @@ Search through your links with ease.
 * [ircmaxell/password_compat](https://github.com/ircmaxell/password_compat) - Secure password hashing?
 
 #### Small print
-Noted is a project I created to learn how to use [Bootstrap](http://twitter.github.io/bootstrap) and the [PDO Library](http://php.net/manual/en/book.pdo.php).  It probably sucks, but I still use it.
+BookMark'd is a project I created to learn how to use [Bootstrap](http://twitter.github.io/bootstrap) and the [PDO Library](http://php.net/manual/en/book.pdo.php).  It probably sucks, but I still use it.
