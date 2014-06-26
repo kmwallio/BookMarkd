@@ -17,7 +17,7 @@ function create_db($file) {
 
 function populate_db() {
   $dbh = connect_db();
-  
+
   try {
     $dbh->query('CREATE TABLE "Documents" (title VARCHAR, doclength INTEGER, path TEXT UNIQUE, icon TEXT, made TIMESTAMP, edited TIMESTAMP, views INTEGER, searches INTEGER, id INTEGER PRIMARY KEY AUTOINCREMENT)');
     $dbh->query('CREATE TABLE "DocumentCache" (content TEXT, id INTEGER REFERENCES "Documents" (id))');
@@ -26,7 +26,7 @@ function populate_db() {
     $dbh->query('CREATE TABLE "Tags" (tag VARCHAR UNIQUE, id INTEGER PRIMARY KEY AUTOINCREMENT)');
     $dbh->query('CREATE TABLE "Terms" (term VARCHAR UNIQUE, occurrences INTEGER, id INTEGER PRIMARY KEY AUTOINCREMENT)');
     $dbh->query('CREATE TABLE "TaggedDocuments" (document INTEGER REFERENCES "Documents" (id), tag INTEGER REFERENCES "Tags" (id))');
-    $dbh->query('CREATE TABLE "DocumentTerms" (occurrences INTEGER, document INTEGER REFERENCES "Documents" (id), term INTEGER REFERENCES "Terms" (id))');
+    $dbh->query('CREATE TABLE "DocumentTerms" (occurrences INTEGER, document INTEGER REFERENCES "Documents" (id), term INTEGER REFERENCES "Terms" (id), termfrequency REAL)');
     $dbh->query('CREATE TABLE "Users" (username VARCHAR PRIMARY KEY, password VARCHAR, cookie_id VARCHAR)');
   } catch (PDOException $e) {
     echo $e->getMessage();
@@ -63,11 +63,11 @@ function setup_footer() {
 ?>
     <script src="http://code.jquery.com/jquery.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script>  
-      $(document).ready(function () {  
+    <script>
+      $(document).ready(function () {
         $("[rel=tooltip]").tooltip();
         $('.navbar').scrollspy();
-      });  
+      });
     </script>
   </body>
 </html>
@@ -82,7 +82,7 @@ if (isset($_POST['setup'])) {
     setup_footer();
     die();
   }
-  
+
   create_db('bookd.sqlite');
   populate_db();
   db_add_user($_POST['username'], $_POST['password']);
@@ -91,17 +91,17 @@ if (isset($_POST['setup'])) {
 } else {
   setup_header();
   ?>
-  
-  
+
+
   <div class="container">
     <h1>Intro</h1>
-    
+
     <p>BookMark'd is your own personal search engine for all the things <strong>you</strong> find interesting on the web.</p>
-    
+
     <p>After you click install, we're going to setup the database and take you to the admin page.  At the admin page, you'll be able to get your bookmarklet.</p>
-    
+
     <h1>Setup</h1>
-    
+
     <form class="form-horizontal" method="post">
       <div class="control-group">
         <label class="control-label" for="inputUser">Username</label>
@@ -115,16 +115,16 @@ if (isset($_POST['setup'])) {
           <input type="password" id="inputPassword" placeholder="Password" name="password">
         </div>
       </div>
-      
+
       <input type="hidden" name="setup" value="go">
-      
+
       <p class=""><input type="submit" class="btn btn-large btn-block btn-success" value="Install"></p>
-      
+
     </form>
-    
+
   </div>
-  
-  
+
+
   <?php
   setup_footer();
 }

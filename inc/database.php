@@ -179,12 +179,12 @@ function db_search($words, $tags = array()) {
     $term_counts[$term] = 0;
     $term_docs[$term] = 0;
 
-    $q = $db->prepare('SELECT Documents.id as doc_id, Documents.icon as icon, Documents.doclength as doc_size, Documents.views as views, Documents.title as title, Documents.path as path, Documents.searches as searches, DocumentTerms.occurrences as doc_count FROM Documents, DocumentTerms, Terms WHERE Terms.id=DocumentTerms.term AND DocumentTerms.document=Documents.id AND Terms.term=:term');
+    $q = $db->prepare('SELECT Documents.id as doc_id, Documents.icon as icon, Documents.doclength as doc_size, Documents.views as views, Documents.title as title, Documents.path as path, Documents.searches as searches, DocumentTerms.occurrences as doc_count, DocumentTerms.termfrequency as term_freq FROM Documents, DocumentTerms, Terms WHERE Terms.id=DocumentTerms.term AND DocumentTerms.document=Documents.id AND Terms.term=:term');
     $q->execute(array('term' => $term));
 
     // Get the information
     while(($row = $q->fetch(PDO::FETCH_ASSOC)) !== false){
-      $docs[$row['doc_id']]['terms'][$term] = $row['doc_count'];
+      $docs[$row['doc_id']]['terms'][$term] = $row['term_freq'];
       $docs[$row['doc_id']]['title'] = $row['title'];
       $docs[$row['doc_id']]['icon'] = $row['icon'];
       $docs[$row['doc_id']]['size'] = $row['doc_size'];
@@ -206,15 +206,10 @@ function db_search($words, $tags = array()) {
   $weights = array();
   $doc_count = count($docs);
   foreach($docs as $doc=>$info) {
-    $q = $db->prepare('SELECT occurrences as max_count FROM DocumentTerms WHERE document=:document ORDER BY occurrences DESC LIMIT 1');
-    $q->execute(array('document' => $doc));
-    $result = $q->fetch(PDO::FETCH_ASSOC);
-    $docs[$doc]['max_count'] = $result['max_count'];
     foreach($terms as $term) {
       if(isset($info['terms'][$term]) && $term_docs[$term] != 0) {
-        $tf = 0.5 + ((0.5 * $info['terms'][$term]) / $docs[$doc]['max_count']);
         $idf = 1 + log($doc_count / ($term_docs[$term]));
-        $tfidf[$doc][$term] = $tf * $idf;
+        $tfidf[$doc][$term] = $info['terms'][$term] * $idf;
       } else {
         $tfidf[$doc][$term] = NO_TERM_PENALTY;
       }
