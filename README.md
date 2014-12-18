@@ -52,7 +52,7 @@ Search through your links with ease.
 3. Run `composer install`
 4. Run setup.php
 5. Setup a cron job to run `cron.php`.  Please note that the php path may be incorrect…
-	* As long as it's more than 1 minutes apart, it should be fine.  This job is what actually adds the "marked" links into the database.  Links cannot be searched for until they are added to the database, they can be viewed in the admin panel though.
+	* As long as it's more than ~15 minutes apart, it should be fine.  This job is what actually adds the "marked" links into the database.  Links cannot be searched for until they are added to the database, they can be viewed in the admin panel though. *I need to update the cron script to be slightly smarter for people who post a large number of links.  We were running into an issue where we would lose the content of some pages.*
 
 ### Credits
 
