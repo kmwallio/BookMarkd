@@ -84,17 +84,17 @@ function db_get_term_id($term) {
   }
 }
 
-function db_add_term($term_id, $doc_id, $count) {
+function db_add_term($term_id, $doc_id, $count, $term_frequency) {
   $db = connect_db();
   try {
     // Get the old Document Term Count
     $doc_term = array("document" => $doc_id, "term" => $term_id);
-    $doc_term_count = array("document" => $doc_id, "term" => $term_id, "count" => $count);
+    $doc_term_count = array("document" => $doc_id, "term" => $term_id, "count" => $count, "termfreq" => $term_frequency);
     $q = $db->prepare("SELECT COUNT(*) FROM DocumentTerms WHERE document=:document AND term=:term");
     $q->execute($doc_term);
     if($q->fetchColumn() == 0) {
       $prevCount = 0;
-      $n = $db->prepare("INSERT INTO DocumentTerms (document, term, occurrences) VALUES (:document, :term, :count)");
+      $n = $db->prepare("INSERT INTO DocumentTerms (document, term, occurrences, termfrequency) VALUES (:document, :term, :count, :termfreq)");
       $n->execute($doc_term_count);
     } else {
       $q = $db->prepare("SELECT occurrences FROM DocumentTerms WHERE document=:document AND term=:term");
@@ -346,7 +346,7 @@ function db_enqueue($key, $path) {
     $q = $db->prepare("INSERT INTO DocumentQueue (path, made) VALUES (:path, strftime('%s','now'))");
     $q->execute(array('path' => $path));
   } else {
-    die('Invalid Markley, did you <a href="/admin.php" target="_blank">generate a new one</a> recently?');
+    die('Invalid Marklet, did you <a href="/admin.php" target="_blank">generate a new one</a> recently?');
   }
 }
 
@@ -522,9 +522,10 @@ function db_fill_document($doc_id, $document) {
   }
 
   $terms = $document->terms;
+  $inverse_doc_freq = $document->inverseDocumentFrequency;
 
   foreach($terms as $term=>$count) {
-    db_add_term(db_get_term_id($term), $doc_id, $count);
+    db_add_term(db_get_term_id($term), $doc_id, $count, $inverse_doc_freq[$term]);
   }
 
   $q = $db->prepare('INSERT INTO DocumentCache (content, id) VALUES (:content, :id)');

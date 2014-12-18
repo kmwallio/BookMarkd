@@ -7,6 +7,7 @@ class Document {
   public $document = '';
   public $content = '';
   public $terms = array();
+  public $inverseDocumentFrequency = array();
   public $front_matter = '';
   public $front_matter_extract = array();
   public $length = 0;
@@ -48,6 +49,7 @@ class Document {
     $oTerms = array_keys($nTerms);
     $limit = count($oTerms);
     $stemmer = new Stemmer();
+    $maxTermCount = 0;
     $this->length = 0;
     for($i = 0; $i < $limit; $i++) {
       $stem = $stemmer->stem($oTerms[$i]);
@@ -57,9 +59,20 @@ class Document {
         }
         $sTermCount[$stem] += $nTerms[$oTerms[$i]];
         $this->length += $nTerms[$oTerms[$i]];
+        if ($sTermCount[$stem] > $maxTermCount) {
+        	$maxTermCount = $sTermCount[$stem];
+        }
       }
     }
     $this->terms = $sTermCount;
+    
+    $sTerms = array_keys($sTermCount);
+    $limit = count($sTerms);
+    $idf = array();
+    for($i = 0; $i < $limit; $i++) {
+      $idf[$sTerms[$i]] = ($maxTermCount > 0) ? ($sTermCount[$sTerms[$i]] / $maxTermCount) : 0;
+    }
+    $this->inverseDocumentFrequency = $idf;
   }
   
   public function extract_front_matter() {
@@ -108,7 +121,7 @@ class Document {
   }
   
   public function get_title($no_blank = false) {
-    if(isset($this->front_matter_extract['title'])) {
+    if(isset($this->front_matter_extract['title']) && $this->front_matter_extract['title'] != '') {
       return $this->front_matter_extract['title'];
     }
     return ($no_blank) ? $this->make_title() : '';
