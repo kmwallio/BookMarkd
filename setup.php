@@ -28,6 +28,7 @@ function populate_db() {
     $dbh->query('CREATE TABLE "TaggedDocuments" (document INTEGER REFERENCES "Documents" (id), tag INTEGER REFERENCES "Tags" (id))');
     $dbh->query('CREATE TABLE "DocumentTerms" (occurrences INTEGER, document INTEGER REFERENCES "Documents" (id), term INTEGER REFERENCES "Terms" (id), termfrequency REAL)');
     $dbh->query('CREATE TABLE "Users" (username VARCHAR PRIMARY KEY, password VARCHAR, cookie_id VARCHAR)');
+    $dbh->query('CREATE INDEX Terms_term ON Terms (term);');
   } catch (PDOException $e) {
     echo $e->getMessage();
   }
