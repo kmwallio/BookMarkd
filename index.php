@@ -131,7 +131,7 @@ if(logged_in() && isset($_GET['del'])) {
       </div>
     </footer>
        
-    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="js/jquery.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script>  
       $(document).ready(function () {  
